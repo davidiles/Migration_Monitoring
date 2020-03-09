@@ -11,7 +11,9 @@ my_packs <- c(
   'parallel','doParallel',
   
   'sf','raster','sp','rgdal',
-  'maptools','rgeos'
+  'maptools','rgeos',
+  
+  'cowplot'
   
 )
 
@@ -55,6 +57,30 @@ range_zones_map <- ggplot() +   theme_bw() +
 tiff(filename = "../4_figures/fig1_range_zones_map.tiff", width = 6, height = 6, unit = "in", res = 300)
 print(range_zones_map)
 dev.off()
+
+#-------------------------------------------------------------------------------------------------------
+# Part 8: Extract BAM relative abundance (density) estimates for each region
+#-------------------------------------------------------------------------------------------------------
+
+# bam map
+GDALinfo("../../data/relative_abundance_maps/mosaic-BLPW-run3.tif")
+bam1 <- raster("../../data/relative_abundance_maps/mosaic-BLPW-run3.tif")
+
+# Combine regional polygons
+poly.west <- st_combine(subset(bcr1,region == "West")) %>% as("Spatial")
+poly.central <- st_combine(subset(bcr1,region == "Central")) %>% as("Spatial")
+poly.east <- st_combine(subset(bcr1,region == "East")) %>% as("Spatial")
+poly.north <- st_combine(subset(bcr1,region == "Far North")) %>% as("Spatial")
+poly.south <- st_combine(subset(bcr1,region == "South")) %>% as("Spatial")
+
+sum.west <- extract(bam1, poly.west, fun = sum, na.rm = TRUE)
+sum.central <- extract(bam1, poly.central, fun = sum, na.rm = TRUE)
+sum.east <- extract(bam1, poly.east, fun = sum, na.rm = TRUE)
+sum.north <- extract(bam1, poly.north, fun = sum, na.rm = TRUE)
+sum.south <- extract(bam1, poly.south, fun = sum, na.rm = TRUE)
+
+rm(bam1);rm(poly.west);rm(poly.central);rm(poly.east);rm(poly.north);rm(poly.south)
+
 
 #-------------------------------------------------------------------------------------------------------
 # Part 2: Plot available stations on map
@@ -220,24 +246,47 @@ N.isotope[1,which(station.summary$station == "TLBBS"),] = 25
 N.isotope[1,which(station.summary$station == "MNO"),] = 25
 N.isotope[1,which(station.summary$station == "LMBO"),] = 25
 N.isotope[1,which(station.summary$station == "TCBO"),] = 25
-N.isotope[1,which(station.summary$station == "LPBO"),] = 25
-
 
 # Region 2: Central stations
-N.isotope[2,which(station.summary$station == "PEPBO"),] = 25
-N.isotope[2,which(station.summary$station == "BPBO"),] = 25
-N.isotope[2,which(station.summary$station == "PIBO"),] = 25
-N.isotope[2,which(station.summary$station == "BSBO"),] = 25
-N.isotope[2,which(station.summary$station == "TTPBRS"),] = 25
-N.isotope[2,which(station.summary$station == "RUTH"),] = 25
-N.isotope[2,which(station.summary$station == "MCCS"),] = 25
-N.isotope[2,which(station.summary$station == "KWRS"),] = 25
-N.isotope[2,which(station.summary$station == "BIBS"),] = 25
+#N.isotope[2,which(station.summary$station == "PIBO"),] = 25
+#N.isotope[2,which(station.summary$station == "BSBO"),] = 25
+#N.isotope[2,which(station.summary$station == "TTPBRS"),] = 25
+#N.isotope[2,which(station.summary$station == "RUTH"),] = 25
+
+N.isotope[1,which(station.summary$station == "BPBO"),] = 5
+N.isotope[2,which(station.summary$station == "BPBO"),] = 20
+
+
+N.isotope[1,which(station.summary$station == "LPBO"),] = 5
+N.isotope[2,which(station.summary$station == "LPBO"),] = 15
+N.isotope[3,which(station.summary$station == "LPBO"),] = 5
+
+N.isotope[1,which(station.summary$station == "PEPBO"),] = 5
+N.isotope[2,which(station.summary$station == "PEPBO"),] = 15
+N.isotope[3,which(station.summary$station == "PEPBO"),] = 10
 
 # Region 3: Eastern stations
-N.isotope[3,which(station.summary$station == "MGBO"),] = 25
+N.isotope[2,which(station.summary$station == "MGBO"),] = 5
+N.isotope[3,which(station.summary$station == "MGBO"),] = 20
+
 N.isotope[3,which(station.summary$station == "FBBO"),] = 25
+
 N.isotope[3,which(station.summary$station == "PARC"),] = 25
+
+
+# Coastal stations get mix of all 3 regions
+N.isotope[1,which(station.summary$station == "MCCS"),] = 5
+N.isotope[2,which(station.summary$station == "MCCS"),] = 10
+N.isotope[3,which(station.summary$station == "MCCS"),] = 10
+
+
+N.isotope[1,which(station.summary$station == "KWRS"),] = 5
+N.isotope[2,which(station.summary$station == "KWRS"),] = 10
+N.isotope[3,which(station.summary$station == "KWRS"),] = 10
+
+N.isotope[1,which(station.summary$station == "BIBS"),] = 5
+N.isotope[2,which(station.summary$station == "BIBS"),] = 10
+N.isotope[3,which(station.summary$station == "BIBS"),] = 10
 
 N.station.sampled <- apply(N.isotope, c(2,3), FUN = sum) # Number of birds sampled each year
 
@@ -448,9 +497,7 @@ print(out)
 
 max(unlist(out$Rhat),na.rm=TRUE)
 
-
 #Residual checks: 
-
     # lambda vs daily count
     # expected count vs daily count
     # true totals vs observed totals
@@ -507,28 +554,6 @@ rtotal.plot <- ggplot(data = rtotal) +
 
 print(rtotal.plot)
 
-
-#-------------------------------------------------------------------------------------------------------
-# Part 8: Extract BAM relative abundance (density) estimates for each region
-#-------------------------------------------------------------------------------------------------------
-
-# bam map
-GDALinfo("../../data/relative_abundance_maps/mosaic-BLPW-run3.tif")
-bam1 <- raster("../../data/relative_abundance_maps/mosaic-BLPW-run3.tif")
-
-# Combine regional polygons
-poly.west <- st_combine(subset(bcr1,region == "West")) %>% as("Spatial")
-poly.central <- st_combine(subset(bcr1,region == "Central")) %>% as("Spatial")
-poly.east <- st_combine(subset(bcr1,region == "East")) %>% as("Spatial")
-poly.north <- st_combine(subset(bcr1,region == "Far North")) %>% as("Spatial")
-poly.south <- st_combine(subset(bcr1,region == "South")) %>% as("Spatial")
-
-sum.west <- extract(bam1, poly.west, fun = sum, na.rm = TRUE)
-sum.central <- extract(bam1, poly.central, fun = sum, na.rm = TRUE)
-sum.east <- extract(bam1, poly.east, fun = sum, na.rm = TRUE)
-sum.north <- extract(bam1, poly.north, fun = sum, na.rm = TRUE)
-sum.south <- extract(bam1, poly.south, fun = sum, na.rm = TRUE)
-
 #-------------------------------------------------------------------------------------------------------
 # Part 9: Adjust regional population trajectories based on regional abundances
 #-------------------------------------------------------------------------------------------------------
@@ -556,35 +581,40 @@ rtotal.adj$region.name[rtotal.adj$region == 3] <- "East"
 rtotal.adj$region.name <- factor(rtotal.adj$region.name, levels = c("West","Central","East"))
 
 log.rtotal.adj.plot <- ggplot(data = rtotal.adj) +
-  geom_ribbon(aes(x = year, ymin = log(index.05), ymax = log(index.95)), alpha = 0.2)+
-  geom_line(aes(x = year, y = log(index.med)))+
+  geom_ribbon(aes(x = year, ymin = log(index.05), ymax = log(index.95), fill = region.name), alpha = 0.5)+
+  geom_line(aes(x = year, y = log(index.med), col = region.name))+
+  scale_color_manual(values = col_pal, guide = FALSE)+
+  scale_fill_manual(values = col_pal, guide = FALSE)+
   theme_bw()+
   ylab("log(Regional Index)")+
   facet_wrap(region.name~.)
-tiff(filename = "../4_figures/fig7_log_regional_indices.tiff", width = 5, height = 4, unit = "in", res = 300)
-print(log.rtotal.adj.plot)
-dev.off()
+
 
 rtotal.adj.plot <- ggplot(data = rtotal.adj) +
-  geom_ribbon(aes(x = year, ymin = index.05, ymax = index.95), alpha = 0.2)+
-  geom_line(aes(x = year, y = index.med))+
+  geom_ribbon(aes(x = year, ymin = index.05, ymax = index.95, fill = region.name), alpha = 0.5)+
+  geom_line(aes(x = year, y = index.med, col = region.name))+
+  
+  scale_color_manual(values = col_pal, guide = FALSE)+
+  scale_fill_manual(values = col_pal, guide = FALSE)+
+  
   theme_bw()+
   ylab("Regional Index")+
   facet_wrap(region.name~.)
 
-tiff(filename = "../4_figures/fig8_regional_indices.tiff", width = 5, height = 4, unit = "in", res = 300)
-print(rtotal.adj.plot)
-dev.off()
+
 
 regional.index.plot <- plot_grid(log.rtotal.adj.plot,
                                  rtotal.adj.plot, nrow = 2, align = "hv")
 
 
+tiff(filename = "../4_figures/fig7_regional_indices.tiff", width = 5, height = 4, unit = "in", res = 300)
+print(regional.index.plot)
+dev.off()
+
 #-------------------------------------------------------------------------------------------------------
 # Part 10: Calculate national totals
 #-------------------------------------------------------------------------------------------------------
 N.total <- apply(N.adj,c(1,3),sum)
-
 
 N.total.df <- data.frame(year_adj = 1:nyear,
                          year = (1:nyear) + min_year - 1,
@@ -592,23 +622,28 @@ N.total.df <- data.frame(year_adj = 1:nyear,
                          N.total.05 = apply(N.total, 2, function(x) quantile(x, 0.05)), 
                          N.total.95 = apply(N.total, 2, function(x) quantile(x, 0.95)))
 
-N.total.plot <- ggplot(data = N.total.df) +
-  geom_ribbon(aes(x = year, ymin = N.total.05, ymax = N.total.95), alpha = 0.2)+
-  geom_line(aes(x = year, y = N.total.med))+
-  ylab("Relative Abundance")+
-  theme_bw()
-
-print(N.total.plot)
-
-
 logN.total.plot <- ggplot(data = N.total.df) +
   geom_ribbon(aes(x = year, ymin = log(N.total.05), ymax = log(N.total.95)), alpha = 0.2)+
   geom_line(aes(x = year, y = log(N.total.med)))+
-  ylab("log(national index)")+
+  ylab("log(National Index)")+
   xlab("year")+
   theme_bw()
 
-print(logN.total.plot)
+N.total.plot <- ggplot(data = N.total.df) +
+  geom_ribbon(aes(x = year, ymin = N.total.05, ymax = N.total.95), alpha = 0.2)+
+  geom_line(aes(x = year, y = N.total.med))+
+  ylab("National Index")+
+  theme_bw()
+
+
+national.index.plot <- plot_grid(logN.total.plot,
+                                 N.total.plot, nrow = 2, 
+                                 align = "hv")
+
+
+tiff(filename = "../4_figures/fig8_national_indices.tiff", width = 5, height = 4, unit = "in", res = 300)
+print(national.index.plot)
+dev.off()
 
 
 #Save workspace
