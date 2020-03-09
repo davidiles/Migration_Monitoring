@@ -61,7 +61,7 @@ dev.off()
 #-------------------------------------------------------------------------------------------------------
 
 # Read in data and subset to Fall (eventually combine)
-dat_combined <- read.csv("./processed_data/dat_combined.csv")
+dat_combined <- read.csv("../2_processed_data/dat_combined.csv")
 dat_combined <- subset(dat_combined, season == "Fall")
 
 stations_to_keep <- c(
@@ -99,7 +99,7 @@ stations_to_keep <- c(
 unique(dat_combined$station)[which(unique(dat_combined$station) %in% names(stations_to_keep) == FALSE)]
 dat_combined <- subset(dat_combined, station %in% names(stations_to_keep) & area == 1)
 
-cmmn_coordinates <- read.csv("../data/locations/CMMN_locations.csv")
+cmmn_coordinates <- read.csv("../../data/locations/CMMN_locations.csv")
 colnames(cmmn_coordinates) <- c("results_code","station","name","statprov_code","lat","lon")
 cmmn_coordinates$station <- as.character(cmmn_coordinates$station)
 
@@ -123,7 +123,7 @@ range_zones_map_sites <- range_zones_map +
                aes(label = station), size = 2, col = "black") +
   ggtitle("Sites with fall counts")
 
-tiff(filename = "../figures/range_zones_map_sites.tiff", width = 6, height = 6, unit = "in", res = 300)
+tiff(filename = "../4_figures/fig2_range_zones_map_sites.tiff", width = 6, height = 6, unit = "in", res = 300)
 print(range_zones_map_sites)
 dev.off()
 
@@ -178,7 +178,7 @@ west_sites <- ggplot() +   theme_bw() +
                aes(label = station), size = 3, col = "black") +
   ggtitle("Stations sampling western zone")
 
-tiff(filename = "../figures/west_sites.tiff", width = 6, height = 6, unit = "in", res = 300)
+tiff(filename = "../4_figures/fig3_west_sites.tiff", width = 6, height = 6, unit = "in", res = 300)
 print(west_sites)
 dev.off()
 
@@ -192,7 +192,7 @@ central_sites <- ggplot() +   theme_bw() +
                aes(label = station), size = 3, col = "black") +
   ggtitle("Stations sampling central zone")
 
-tiff(filename = "../figures/central_sites.tiff", width = 6, height = 6, unit = "in", res = 300)
+tiff(filename = "../4_figures/fig4_central_sites.tiff", width = 6, height = 6, unit = "in", res = 300)
 print(central_sites)
 dev.off()
 
@@ -207,7 +207,7 @@ east_sites <- ggplot() +   theme_bw() +
                aes(label = station), size = 3, col = "black") +
   ggtitle("Stations sampling east zone")
 
-tiff(filename = "../figures/east_sites.tiff", width = 6, height = 6, unit = "in", res = 300)
+tiff(filename = "../4_figures/fig5_east_sites.tiff", width = 6, height = 6, unit = "in", res = 300)
 print(east_sites)
 dev.off()
 
@@ -248,7 +248,7 @@ N.isotope[,1:nstation,6:nyear] = NA
 #-------------------------------------------------------------------------------------------------------
 # Part 5: Model
 #-------------------------------------------------------------------------------------------------------
-sink("cmmn_analysis.jags")
+sink("regional_analysis.jags")
 cat("
     
     model {
@@ -261,7 +261,6 @@ cat("
       
         # Regional trends
         trend[r] ~ dnorm(0,0.1) 
-        
         
       }
       
@@ -437,16 +436,18 @@ jags.data = list(
 # Fit model in JAGS
 #----------
 out <- jags(data = jags.data,
-            model.file = "cmmn_analysis.jags",
+            model.file = "regional_analysis.jags",
             parameters.to.save = parameters.to.save,
             inits = inits,
             n.chains = 2,
             n.thin = 5,
-            n.iter = 40000,
-            n.burnin = 10000)
+            n.iter = 10000,
+            n.burnin = 5000)
 
 print(out)
+
 max(unlist(out$Rhat),na.rm=TRUE)
+
 
 #Residual checks: 
 
@@ -460,13 +461,11 @@ max(unlist(out$Rhat),na.rm=TRUE)
 #-------------------------------------------------------------------------------------------------------
 # Part 7: Summarize posterior densities
 #-------------------------------------------------------------------------------------------------------
-station.region <- data.frame(region = stations_to_keep,
-                             station = names(stations_to_keep))
-station.region$region <- factor(station.region$region, levels = c("West","Central","East"))
+
 pd <- out$sims.list
 
-
-dim(pd$total)
+station.region <- data.frame(region = stations_to_keep,station = names(stations_to_keep))
+station.region$region <- factor(station.region$region, levels = c("West","Central","East"))
 
 stotal.med <- melt(apply(pd$total, c(2,3), median)) %>% rename(station_number = Var1, year_adj = Var2, index.med = value)
 stotal.05 <- melt(apply(pd$total, c(2,3), function(x) quantile(x, 0.05))) %>% rename(station_number = Var1, year_adj = Var2, index.05 = value)
@@ -474,11 +473,9 @@ stotal.95 <- melt(apply(pd$total, c(2,3), function(x) quantile(x, 0.95))) %>% re
 
 stotal <- full_join(stotal.med, stotal.05) %>% full_join(stotal.95) %>% full_join(station.summary)
 stotal$year <- stotal$year_adj + min_year - 1
-
 stotal <- full_join(stotal, station.region)
 
 col_pal <- RColorBrewer::brewer.pal(length(unique(bcr1$region)),"Set2")
-
 stotal.plot <- ggplot(data = stotal) +
   geom_ribbon(aes(x = year, ymin = log(index.05), ymax = log(index.95), fill = region), alpha = 0.5)+
   geom_line(aes(x = year, y = log(index.med), col = region))+
@@ -490,7 +487,12 @@ stotal.plot <- ggplot(data = stotal) +
 
 print(stotal.plot)
 
+tiff(filename = "../4_figures/fig6_station_indices.tiff", width = 6, height = 5, unit = "in", res = 300)
+print(stotal.plot)
+dev.off()
 
+
+# Regional indices over time (not weighted by relative abundance)
 rtotal.med <- melt(apply(pd$N, c(2,3), median)) %>% rename(region = Var1, year = Var2, index.med = value)
 rtotal.05 <- melt(apply(pd$N, c(2,3), function(x) quantile(x, 0.05))) %>% rename(region = Var1, year = Var2, index.05 = value)
 rtotal.95 <- melt(apply(pd$N, c(2,3), function(x) quantile(x, 0.95))) %>% rename(region = Var1, year = Var2, index.95 = value)
@@ -511,8 +513,8 @@ print(rtotal.plot)
 #-------------------------------------------------------------------------------------------------------
 
 # bam map
-GDALinfo("../data/relative_abundance_maps/mosaic-BLPW-run3.tif")
-bam1 <- raster("../data/relative_abundance_maps/mosaic-BLPW-run3.tif")
+GDALinfo("../../data/relative_abundance_maps/mosaic-BLPW-run3.tif")
+bam1 <- raster("../../data/relative_abundance_maps/mosaic-BLPW-run3.tif")
 
 # Combine regional polygons
 poly.west <- st_combine(subset(bcr1,region == "West")) %>% as("Spatial")
@@ -537,10 +539,10 @@ logN.east <- log(sum.east)
 
 N.adj <- pd$N
 
+
 N.adj[,1,] <- N.adj[,1,] * as.numeric(sum.west)
 N.adj[,2,] <- N.adj[,2,] * as.numeric(sum.central)
 N.adj[,3,] <- N.adj[,3,] * as.numeric(sum.east)
-
 
 rtotal.adj.med <- melt(apply(N.adj, c(2,3), median)) %>% rename(region = Var1, year = Var2, index.med = value)
 rtotal.adj.05 <- melt(apply(N.adj, c(2,3), function(x) quantile(x, 0.05))) %>% rename(region = Var1, year = Var2, index.05 = value)
@@ -552,23 +554,32 @@ rtotal.adj$region.name <- "West"
 rtotal.adj$region.name[rtotal.adj$region == 2] <- "Central"
 rtotal.adj$region.name[rtotal.adj$region == 3] <- "East"
 rtotal.adj$region.name <- factor(rtotal.adj$region.name, levels = c("West","Central","East"))
-rtotal.adj.plot <- ggplot(data = rtotal.adj) +
+
+log.rtotal.adj.plot <- ggplot(data = rtotal.adj) +
   geom_ribbon(aes(x = year, ymin = log(index.05), ymax = log(index.95)), alpha = 0.2)+
   geom_line(aes(x = year, y = log(index.med)))+
   theme_bw()+
+  ylab("log(Regional Index)")+
   facet_wrap(region.name~.)
-
-print(rtotal.adj.plot)
-
+tiff(filename = "../4_figures/fig7_log_regional_indices.tiff", width = 5, height = 4, unit = "in", res = 300)
+print(log.rtotal.adj.plot)
+dev.off()
 
 rtotal.adj.plot <- ggplot(data = rtotal.adj) +
   geom_ribbon(aes(x = year, ymin = index.05, ymax = index.95), alpha = 0.2)+
   geom_line(aes(x = year, y = index.med))+
   theme_bw()+
-  ylab("Relative Abundance")+
+  ylab("Regional Index")+
   facet_wrap(region.name~.)
 
+tiff(filename = "../4_figures/fig8_regional_indices.tiff", width = 5, height = 4, unit = "in", res = 300)
 print(rtotal.adj.plot)
+dev.off()
+
+regional.index.plot <- plot_grid(log.rtotal.adj.plot,
+                                 rtotal.adj.plot, nrow = 2, align = "hv")
+
+
 #-------------------------------------------------------------------------------------------------------
 # Part 10: Calculate national totals
 #-------------------------------------------------------------------------------------------------------
@@ -598,3 +609,7 @@ logN.total.plot <- ggplot(data = N.total.df) +
   theme_bw()
 
 print(logN.total.plot)
+
+
+#Save workspace
+save.image("../3_output/workspace_with_regional_results.RData")
