@@ -1,0 +1,119 @@
+
+    
+    model {
+      
+      #---------------------------------------------
+      # Model for population dynamics in each region
+      #---------------------------------------------
+ 
+      for (r in 1:nregion){
+      
+        # Regional trends
+        trend[r] ~ dnorm(0,0.1) 
+        
+      }
+      
+      # Temporal variance in trend
+      proc.sd ~ dunif(0,2)
+      proc.tau <- pow(proc.sd,-2)
+      
+      
+      # True (unobserved) population dynamics in each region
+      for (y in 1:nyear){
+        for (r in 1:nregion){
+        
+          # Exponential population model
+          proc.noise[r,y] ~ dnorm(0,proc.tau)
+          logN[r,y] <- logN0[r] + trend[r] * (y-1) + proc.noise[r,y]
+          N[r,y] <- exp(logN[r,y])
+        }
+      }
+      
+      #---------------------------------------------
+      # Observed numbers of birds at station [s] originating from region [r] in year [y]
+      #---------------------------------------------
+      
+      # Proportion of birds from region [r] that are 
+      # captured by station [s] (constant through time)
+       for (r in 1:nregion){
+         for (s in 1:nstation){
+         
+           log.rho[r,s] ~ dnorm(0,0.1)
+           rho[r,s] <- exp(log.rho[r,s]) #* rho.fix[r,s]
+           
+        }
+       }
+      
+      for (s in 1:nstation){
+      
+      station.sd[s] ~ dunif(0,2)
+      station.tau[s] <- pow(station.sd[s],-2)
+      
+        for (y in 1:nyear){
+          for (r in 1:nregion){
+          
+            # Seasonal total arriving at station [s] from region [r]
+            log.mu[r,s,y] <- logN[r,y] + log.rho[r,s]
+            mu[r,s,y] <- exp(log.mu[r,s,y])
+            
+          }
+        
+          # Total seasonal count at station [s]
+          mu.total[s,y] <- sum(mu[1:nregion,s,y]) 
+          log.mu.total[s,y] <- log(mu.total[s,y])
+          
+          # Noise in migration strength year
+          log.total[s,y] ~ dnorm(log.mu.total[s,y], station.tau[s])
+          total[s,y] <- exp(log.total[s,y])
+          
+          # Multinomial to describe regional composition in this year, at this station
+          N.isotope[1:nregion,s,y] ~ dmulti(mu[,s,y], N.station.sampled[s,y])
+          
+          N.obs[s,y] ~ dpois(total[s,y])
+          
+          
+        }
+      }
+      # 
+      # #---------------------------------------------
+      # # Estimate totals at each station each year
+      # #---------------------------------------------
+      # 
+      # for (s in 1:nstation){
+      # 
+      #   mean.migrate[s] ~ dunif(1,nday)
+      #   sd.migrate[s] ~ dunif(0,20)
+      # 
+      #   daily.noise.sd[s] ~ dunif(0,2)
+      #   daily.noise.tau[s] <- pow(daily.noise.sd[s],-2)
+      # 
+      #   for (y in 1:nyear){
+      #     for (d in 1:nday){
+      #       
+      #       norm.density[d,s,y] <- 1/(sqrt(2*pi)*sd.migrate[s])*
+      #           exp(-((d-mean.migrate[s])^2/(2*sd.migrate[s]^2)))
+      #       
+      #       # Expected count on each day
+      #       expected.count[d,s,y] <- norm.density[d,s,y] * total[s,y] * exp(log.offset[d,s,y])
+      #       
+      #       # Daily observation error
+      #       daily.noise[d,s,y] ~ dnorm(0,daily.noise.tau[s])
+      #       
+      #       lambda[d,s,y] <- exp(log(expected.count[d,s,y]) + daily.noise[d,s,y])
+      #       daily.count[d,s,y] ~ dpois(lambda[d,s,y])
+      #       
+      #     }
+      #   }
+      # }
+      
+      #---------------------------------------------
+      # Derived quantities
+      #---------------------------------------------
+      
+      # Total birds across all regions (used to determine national trend)
+      for (y in 1:nyear){
+        N.total[y] <- sum(N[,y])
+      }
+      
+    }
+    
