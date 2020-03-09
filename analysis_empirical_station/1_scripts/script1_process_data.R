@@ -1,5 +1,3 @@
-setwd("~/Projects/MigrationTrends/scripts")
-
 # Required packages
 my_packs <- c(
   
@@ -32,22 +30,22 @@ rm(list=ls())
 
 #Data provided by Danielle Ethier (BSC).  Has been pre-processed/cleaned.  Does not include offsets or effort (i.e., hours nets were open).
 
-dat_can <- rbind(read.csv("../data/migration_counts/CAN/2020_01_03/ACBO.BLPW.2018.csv") %>% add_column(., station = "ACBO"),
-                 read.csv("../data/migration_counts/CAN/2020_01_03/BPBO.BLPW.2018.csv") %>% add_column(., station = "BPBO"),
-                 read.csv("../data/migration_counts/CAN/2020_01_03/IPBO.BLPW.2018.csv") %>% add_column(., station = "IPBO"),
+dat_can <- rbind(read.csv("../../data/migration_counts/CAN/2020_01_03/ACBO.BLPW.2018.csv") %>% add_column(., station = "ACBO"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/BPBO.BLPW.2018.csv") %>% add_column(., station = "BPBO"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/IPBO.BLPW.2018.csv") %>% add_column(., station = "IPBO"),
                  
-                 read.csv("../data/migration_counts/CAN/2020_01_03/LMBO.BLPW.2018.csv") %>% add_column(., station = "LMBO"),
-                 read.csv("../data/migration_counts/CAN/2020_01_03/LPBO.BLPW.2018.csv") %>% add_column(., station = "LPBO"),
-                 read.csv("../data/migration_counts/CAN/2020_01_03/MGBO.BLPW.2018.csv") %>% add_column(., station = "MGBO"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/LMBO.BLPW.2018.csv") %>% add_column(., station = "LMBO"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/LPBO.BLPW.2018.csv") %>% add_column(., station = "LPBO"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/MGBO.BLPW.2018.csv") %>% add_column(., station = "MGBO"),
                  
-                 read.csv("../data/migration_counts/CAN/2020_01_03/MNO.BLPW.2018.csv") %>% add_column(., station = "MNO"),
-                 read.csv("../data/migration_counts/CAN/2020_01_03/PEPBO.BLPW.2018.csv") %>% add_column(., station = "PEPBO"),
-                 read.csv("../data/migration_counts/CAN/2020_01_03/PIBO.BLPW.2018.csv") %>% add_column(., station = "PIBO"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/MNO.BLPW.2018.csv") %>% add_column(., station = "MNO"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/PEPBO.BLPW.2018.csv") %>% add_column(., station = "PEPBO"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/PIBO.BLPW.2018.csv") %>% add_column(., station = "PIBO"),
                  
-                 read.csv("../data/migration_counts/CAN/2020_01_03/RUTH.BLPW.2018.csv") %>% add_column(., station = "RUTH"),
-                 read.csv("../data/migration_counts/CAN/2020_01_03/TCBO.BLPW.2018.csv") %>% add_column(., station = "TCBO"),
-                 read.csv("../data/migration_counts/CAN/2020_01_03/TLBBS.BLPW.2018.csv") %>% add_column(., station = "TLBBS"),
-                 read.csv("../data/migration_counts/CAN/2020_01_03/TTPBRS.BLPW.2018.csv") %>% add_column(., station = "TTPBRS")
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/RUTH.BLPW.2018.csv") %>% add_column(., station = "RUTH"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/TCBO.BLPW.2018.csv") %>% add_column(., station = "TCBO"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/TLBBS.BLPW.2018.csv") %>% add_column(., station = "TLBBS"),
+                 read.csv("../../data/migration_counts/CAN/2020_01_03/TTPBRS.BLPW.2018.csv") %>% add_column(., station = "TTPBRS")
 )
 
 # Create a column to distinguish sub-areas at LPBO (area will be 1 for all other stations)
@@ -99,28 +97,28 @@ dat_combined_can$country = "CAN"
 #------------------------------------------------------------------------------------------------------------------------------------------
 # Read/format data from Ricky Dunn (USA data)
 #------------------------------------------------------------------------------------------------------------------------------------------
-dat_usa <- rbind(readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - AIMS spring.xlsx") %>% as.data.frame() %>% add_column(., season = "Spring"),
+dat_usa <- rbind(readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - AIMS spring.xlsx") %>% as.data.frame() %>% add_column(., season = "Spring"),
                  
-                 readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - BIBS fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall"),
+                 readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - BIBS fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall"),
                  
-                 readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - BSBO fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall"),
-                 readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - BSBO spring.xlsx") %>% as.data.frame() %>% add_column(., season = "Spring"),
+                 readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - BSBO fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall"),
+                 readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - BSBO spring.xlsx") %>% as.data.frame() %>% add_column(., season = "Spring"),
                  
-                 readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - FBBS spring.xlsx") %>% as.data.frame() %>% add_column(., season = "Spring"),
-                 readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - FBBS fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall"),
+                 readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - FBBS spring.xlsx") %>% as.data.frame() %>% add_column(., season = "Spring"),
+                 readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - FBBS fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall"),
                  
-                 readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - KWRS fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall"),
+                 readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - KWRS fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall"),
                  
-                 readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - MCCS fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall"),
-                 readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - MCCS spring.xlsx") %>% as.data.frame() %>% add_column(., season = "Spring"))
+                 readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - MCCS fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall"),
+                 readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - MCCS spring.xlsx") %>% as.data.frame() %>% add_column(., season = "Spring"))
 
 # datasets with different column names
-tmp = readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - PARC fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall")
+tmp = readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - PARC fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall")
 colnames(tmp) <- colnames(dat_usa)
 dat_usa <- rbind(dat_usa, tmp)
 rm(tmp)    
 
-tmp = readxl::read_xlsx("../data/migration_counts/USA/Cleaned BLPW - CFMS fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall")
+tmp = readxl::read_xlsx("../../data/migration_counts/USA/Cleaned BLPW - CFMS fall.xlsx") %>% as.data.frame() %>% add_column(., season = "Fall")
 colnames(tmp) <- colnames(dat_usa)
 dat_usa <- rbind(dat_usa, tmp)
 rm(tmp) 
@@ -135,7 +133,7 @@ colnames(dat_usa) = c("station","YearCollected","doy","net.hrs","ObservationCoun
 dat_usa$area = 1
 
 # Load analysis windows for each station and restrict data to those dates
-us_windows = read.csv("../data/migration_counts/USA/US_station_windows.csv")
+us_windows = read.csv("../../data/migration_counts/USA/US_station_windows.csv")
 dat_usa2 = data.frame()
 for (i in 1:nrow(us_windows)){
   x = us_windows[i,]
@@ -202,49 +200,49 @@ dat_combined = subset(dat_combined, YearCollected >= 2006)
 #----------------------------------
 #----------------------------------
 
-# CAN Spring
-CAN_Spring_plot <- ggplot(data = subset(dat_combined, country == "CAN" & season == "Spring")) +
-  geom_point(aes(x = doy, y = ObservationCount), col = "blue")+
-  facet_grid(station~YearCollected, scales = "free_y")+
-  xlab("Day of Year")+
-  ylab("Count")+
-  theme_bw()
-pdf(file = paste0(file = "../figures/data_summaries/CAN_Spring_plot.pdf"), width = 30,height=6)
-print(CAN_Spring_plot )
-dev.off()
-
-# CAN Fall
-CAN_Fall_plot <- ggplot(data = subset(dat_combined, country == "CAN" & season == "Fall")) +
-  geom_point(aes(x = doy, y = ObservationCount), col = "blue")+
-  facet_grid(station~YearCollected, scales = "free_y")+
-  xlab("Day of Year")+
-  ylab("Count")+
-  theme_bw()
-pdf(file = paste0(file = "../figures/data_summaries/CAN_Fall_plot.pdf"), width = 30,height=6)
-print(CAN_Fall_plot )
-dev.off()
-
-# USA Spring
-USA_Spring_plot <- ggplot(data = subset(dat_combined, country == "USA" & season == "Spring")) +
-  geom_point(aes(x = doy, y = N.per.100.net.hrs), col = "blue")+
-  facet_grid(station~YearCollected, scales = "free_y")+
-  xlab("Day of Year")+
-  ylab("Count(N/100 net hours)")+
-  theme_bw()
-pdf(file = paste0(file = "../figures/data_summaries/USA_Spring_plot.pdf"), width = 30,height=6)
-print(USA_Spring_plot )
-dev.off()
-
-# USA Fall
-USA_Fall_plot <- ggplot(data = subset(dat_combined, country == "USA" & season == "Fall")) +
-  geom_point(aes(x = doy, y = N.per.100.net.hrs), col = "blue")+
-  facet_grid(station~YearCollected, scales = "free_y")+
-  xlab("Day of Year")+
-  ylab("Count(N/100 net hours)")+
-  theme_bw()
-pdf(file = paste0(file = "../figures/data_summaries/USA_Fall_plot.pdf"), width = 30,height=6)
-print(USA_Fall_plot )
-dev.off()
+# # CAN Spring
+# CAN_Spring_plot <- ggplot(data = subset(dat_combined, country == "CAN" & season == "Spring")) +
+#   geom_point(aes(x = doy, y = ObservationCount), col = "blue")+
+#   facet_grid(station~YearCollected, scales = "free_y")+
+#   xlab("Day of Year")+
+#   ylab("Count")+
+#   theme_bw()
+# pdf(file = paste0(file = "../../figures/data_summaries/CAN_Spring_plot.pdf"), width = 30,height=6)
+# print(CAN_Spring_plot )
+# dev.off()
+# 
+# # CAN Fall
+# CAN_Fall_plot <- ggplot(data = subset(dat_combined, country == "CAN" & season == "Fall")) +
+#   geom_point(aes(x = doy, y = ObservationCount), col = "blue")+
+#   facet_grid(station~YearCollected, scales = "free_y")+
+#   xlab("Day of Year")+
+#   ylab("Count")+
+#   theme_bw()
+# pdf(file = paste0(file = "../../figures/data_summaries/CAN_Fall_plot.pdf"), width = 30,height=6)
+# print(CAN_Fall_plot )
+# dev.off()
+# 
+# # USA Spring
+# USA_Spring_plot <- ggplot(data = subset(dat_combined, country == "USA" & season == "Spring")) +
+#   geom_point(aes(x = doy, y = N.per.100.net.hrs), col = "blue")+
+#   facet_grid(station~YearCollected, scales = "free_y")+
+#   xlab("Day of Year")+
+#   ylab("Count(N/100 net hours)")+
+#   theme_bw()
+# pdf(file = paste0(file = "../../figures/data_summaries/USA_Spring_plot.pdf"), width = 30,height=6)
+# print(USA_Spring_plot )
+# dev.off()
+# 
+# # USA Fall
+# USA_Fall_plot <- ggplot(data = subset(dat_combined, country == "USA" & season == "Fall")) +
+#   geom_point(aes(x = doy, y = N.per.100.net.hrs), col = "blue")+
+#   facet_grid(station~YearCollected, scales = "free_y")+
+#   xlab("Day of Year")+
+#   ylab("Count(N/100 net hours)")+
+#   theme_bw()
+# pdf(file = paste0(file = "../../figures/data_summaries/USA_Fall_plot.pdf"), width = 30,height=6)
+# print(USA_Fall_plot )
+# dev.off()
 
 #--------------------------------------------
 # Restrict analysis to sites with monitoring windows longer than 3 weeks
@@ -267,4 +265,4 @@ dat_combined$station_season = paste0(dat_combined$station,"_",dat_combined$seaso
 dat_combined <- subset(dat_combined, station_season %in% longer_than_3wks$station_season)
 #--------------------------------------------
 
-write.csv(dat_combined, file = "./processed_data/dat_combined.csv", row.names = FALSE)
+write.csv(dat_combined, file = "../2_processed_data/dat_combined.csv", row.names = FALSE)

@@ -1,5 +1,3 @@
-#setwd("~/Projects/MigrationTrends/scripts")
-
 # Required packages
 my_packs <- c(
   
@@ -31,7 +29,7 @@ rm(list=ls())
 lcc = "+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
 
 # Read BCR boundaries
-bcr1 <- st_read("../data/boundary_shapefiles/bcr/BCR_Terrestrial_master.shp") %>% 
+bcr1 <- st_read("../../data/boundary_shapefiles/bcr/BCR_Terrestrial_master.shp") %>% 
 subset(. , COUNTRY %in% c("CANADA","USA") & PROVINCE_S != "HAWAIIAN ISLANDS") %>% 
 st_transform( ., crs = lcc)
 
@@ -54,7 +52,7 @@ range_zones_map <- ggplot() +   theme_bw() +
   geom_sf(data = bcr1, aes(fill = region), col = "gray95")+
   scale_fill_manual(values=col_pal)
 
-tiff(filename = "../figures/range_zones_map.tiff", width = 6, height = 6, unit = "in", res = 300)
+tiff(filename = "../4_figures/fig1_range_zones_map.tiff", width = 6, height = 6, unit = "in", res = 300)
 print(range_zones_map)
 dev.off()
 
