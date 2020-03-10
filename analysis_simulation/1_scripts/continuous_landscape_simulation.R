@@ -56,9 +56,9 @@ all_results = foreach(iteration = 1:1000, .combine = rbind, .packages = my.packs
   #cell.trend <- sin(y) * 0.1 - 0.05
   
   cell.trend <- rep(NA, ncell)
-  cell.trend[regions == 1] = rnorm(sum(regions==1),0.05,0.02)
-  cell.trend[regions == 2] = rnorm(sum(regions==2),0,0.02)
-  cell.trend[regions == 3] = rnorm(sum(regions==3),-0.05,0.02)
+  cell.trend[regions == 1] = rnorm(sum(regions==1),0.05,0)
+  cell.trend[regions == 2] = rnorm(sum(regions==2),0,0)
+  cell.trend[regions == 3] = rnorm(sum(regions==3),-0.05,0)
   
   
   # matrix to store time series of abundance in each cell
@@ -167,13 +167,12 @@ all_results = foreach(iteration = 1:1000, .combine = rbind, .packages = my.packs
       
         # Regional trends
         trend[r] ~ dnorm(0,0.1) 
-        
+      
       }
       
-      # Temporal variance in trend
+      # Temporal variance in regional trend (assumed to be same magnitude of variance in all regions)
       proc.sd ~ dunif(0,2)
       proc.tau <- pow(proc.sd,-2)
-      
       
       # True (unobserved) population dynamics in each region
       for (y in 1:nyear){
@@ -196,15 +195,16 @@ all_results = foreach(iteration = 1:1000, .combine = rbind, .packages = my.packs
          for (s in 1:nstation){
          
            log.rho[r,s] ~ dnorm(0,0.1)
-           rho[r,s] <- exp(log.rho[r,s]) #* rho.fix[r,s]
+           rho[r,s] <- exp(log.rho[r,s]) * rho.fix[r,s]
            
         }
        }
       
       for (s in 1:nstation){
       
-      station.sd[s] ~ dunif(0,2)
-      station.tau[s] <- pow(station.sd[s],-2)
+        # Year to year variance in abundance at station
+        station.sd[s] ~ dunif(0,2)
+        station.tau[s] <- pow(station.sd[s],-2)
       
         for (y in 1:nyear){
           for (r in 1:nregion){
@@ -218,16 +218,16 @@ all_results = foreach(iteration = 1:1000, .combine = rbind, .packages = my.packs
           # Total seasonal count at station [s]
           mu.total[s,y] <- sum(mu[1:nregion,s,y]) 
           log.mu.total[s,y] <- log(mu.total[s,y])
-          
-          # Noise in migration strength year
-          log.total[s,y] ~ dnorm(log.mu.total[s,y], station.tau[s])
-          total[s,y] <- exp(log.total[s,y])
+          log.Nobs[s,y] ~ dnorm(log.mu.total[s,y], station.tau[s]) # Observations
           
           # Multinomial to describe regional composition in this year, at this station
           N.isotope[1:nregion,s,y] ~ dmulti(mu[,s,y], N.station.sampled[s,y])
           
-          N.obs[s,y] ~ dpois(total[s,y])
           
+          # Noise in migration strength year
+          #log.total[s,y] ~ dnorm(log.mu.total[s,y], station.tau[s])
+          #total[s,y] <- exp(log.total[s,y])
+          #N.obs[s,y] ~ dnorm(total[s,y], 0.1)
           
         }
       }
@@ -278,7 +278,8 @@ all_results = foreach(iteration = 1:1000, .combine = rbind, .packages = my.packs
   
   rho.fix <- (apply(N.isotope,c(1,2),sum, na.rm = TRUE) > 0) * 1 #In cases where a transition was never observed, fix it to zero
   
-  jags.data <- list(N.obs  = t(obsmat.sum),
+  jags.data <- list(#N.obs  = t(obsmat.sum),
+                    log.Nobs = log(t(obsmat.sum)),
                     nregion = 3,
                     
                     logN0 = rep(log(1),nregion),
@@ -514,3 +515,21 @@ all_results = foreach(iteration = 1:1000, .combine = rbind, .packages = my.packs
   
 }
 
+
+# Evaluate bias/precision
+simulation_results <- read.csv(file = "../2_Routput/continuous_landscape.csv")
+
+# Subset to only "converged" runs
+simulation_results <- subset(simulation_results, max.Rhat <= 1.2)
+
+ggplot(data = simulation_results) +
+  geom_point(aes(x = trend.reg1.true, y = trend.reg1.est), col = "blue")+
+  geom_point(aes(x = trend.reg2.true, y = trend.reg2.est), col = "green")+
+  geom_point(aes(x = trend.reg3.true, y = trend.reg3.est), col = "orangered")+
+  
+  geom_point(aes(x = trend.national.true, y = trend.national.est), col = "black")+
+  
+  geom_abline(intercept = 0, slope = 1)+
+  coord_equal(xlim=c(-0.1,0.1),ylim=c(-0.1,0.1))+
+  
+  theme_bw()
